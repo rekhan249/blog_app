@@ -11,15 +11,21 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class AddNewBlogsScreen extends StatefulWidget {
+class EditOldBlog extends StatefulWidget {
   final String title;
-  const AddNewBlogsScreen({super.key, required this.title});
+  const EditOldBlog({super.key, required this.title});
 
   @override
-  State<AddNewBlogsScreen> createState() => _AddNewBlogsScreenState();
+  State<EditOldBlog> createState() => _EditOldBlogState();
 }
 
-class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
+class _EditOldBlogState extends State<EditOldBlog> {
+  BlogsDatabase blogsDatabase = BlogsDatabase.instance;
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final idController = TextEditingController();
@@ -191,8 +197,7 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
     );
   }
 
-  addDataInDatebase(
-      image, String title, selectedDate, String desc, String id) async {
+  addDataInDatebase(image, String title, selectedDate, String desc, String id) {
     Blogs blogs = Blogs(
         id: int.parse(id),
         title: title,
@@ -202,11 +207,9 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
-      blogsDatabase.create(blogs).then((value) {
-        print("=====================<${value.toMap()}");
-      });
+      blogsDatabase.create(blogs);
 
-      Fluttertoast.showToast(msg: "Creat Table and Data Successfully");
+      Fluttertoast.showToast(msg: "Update date Successfully");
       Navigator.push(
           context,
           MaterialPageRoute(

@@ -1,4 +1,5 @@
 import 'package:blogs_app/screens/auth_screens/signup_screen.dart';
+import 'package:blogs_app/screens/blogs_screen.dart';
 import 'package:flutter/material.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -66,7 +67,12 @@ class SignInScreen extends StatelessWidget {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const BlogScreen()));
+                    },
                     style: ElevatedButton.styleFrom(
                       shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10))),
