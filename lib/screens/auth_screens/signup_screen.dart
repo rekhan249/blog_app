@@ -1,10 +1,20 @@
+import 'dart:js';
+
+import 'package:blogs_app/database_sqflite/database_sqflite.dart';
+import 'package:blogs_app/models/auth_models/signup_model.dart';
+import 'package:blogs_app/screens/auth_screens/signin_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SignUpScreen extends StatelessWidget {
   const SignUpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final usernameController = TextEditingController();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final confirmPassowordController = TextEditingController();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -39,6 +49,7 @@ class SignUpScreen extends StatelessWidget {
                 Column(
                   children: <Widget>[
                     TextField(
+                      controller: usernameController,
                       decoration: InputDecoration(
                           hintText: "Username",
                           border: OutlineInputBorder(
@@ -51,6 +62,7 @@ class SignUpScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
+                      controller: emailController,
                       decoration: InputDecoration(
                           hintText: "Email",
                           border: OutlineInputBorder(
@@ -63,6 +75,7 @@ class SignUpScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
+                      controller: passwordController,
                       decoration: InputDecoration(
                         hintText: "Password",
                         border: OutlineInputBorder(
@@ -77,6 +90,7 @@ class SignUpScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
+                      controller: confirmPassowordController,
                       decoration: InputDecoration(
                         hintText: "Confirm Password",
                         border: OutlineInputBorder(
@@ -95,7 +109,14 @@ class SignUpScreen extends StatelessWidget {
                 Container(
                     padding: const EdgeInsets.only(top: 3, left: 3),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        await formSubmittionAndAuthenticate(
+                            usernameController.text,
+                            emailController.text,
+                            passwordController.text,
+                            confirmPassowordController.text,
+                            context);
+                      },
                       style: ElevatedButton.styleFrom(
                         shape: const RoundedRectangleBorder(
                             borderRadius:
@@ -128,5 +149,26 @@ class SignUpScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  formSubmittionAndAuthenticate(
+    String username,
+    String email,
+    String password,
+    String confirmPassword,
+    BuildContext context,
+  ) async {
+    SignUpModel signUpModel =
+        SignUpModel(username, email, password, confirmPassword);
+    try {
+      BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
+      blogsDatabase.createUser(signUpModel).whenComplete(() {
+        Fluttertoast.showToast(msg: "Creat Table and Data Successfully");
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()));
+      });
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Something wrong $e");
+    }
   }
 }

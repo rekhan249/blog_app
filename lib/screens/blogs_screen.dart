@@ -59,12 +59,17 @@ class _BlogScreenState extends State<BlogScreen> {
                             itemCount: snapshot.data!.length,
                             itemBuilder: (context, index) {
                               return GestureDetector(
+                                onLongPress: () async {
+                                  await blogsDatabase.delete(index);
+                                },
                                 onTap: () {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SingleBlog()));
+                                          builder: (context) => SingleBlog(
+                                              id: index,
+                                              singleBlog:
+                                                  snapshot.data![index])));
                                 },
                                 child: Card(
                                   child: Column(
@@ -72,21 +77,8 @@ class _BlogScreenState extends State<BlogScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Stack(children: [
-                                        snapshot.data![index].image.isNotEmpty
+                                        snapshot.data![index].image.isEmpty
                                             ? ClipRRect(
-                                                borderRadius:
-                                                    const BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(20),
-                                                        topRight:
-                                                            Radius.circular(
-                                                                20)),
-                                                child: Image.memory(
-                                                  snapshot.data![index].image,
-                                                  fit: BoxFit.fitWidth,
-                                                ),
-                                              )
-                                            : ClipRRect(
                                                 borderRadius:
                                                     const BorderRadius.only(
                                                         topLeft:
@@ -98,55 +90,71 @@ class _BlogScreenState extends State<BlogScreen> {
                                                   "https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg",
                                                   fit: BoxFit.fitWidth,
                                                 ),
+                                              )
+                                            : ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                        topLeft:
+                                                            Radius.circular(20),
+                                                        topRight:
+                                                            Radius.circular(
+                                                                20)),
+                                                child: Image.memory(
+                                                  snapshot.data![index].image,
+                                                  fit: BoxFit.fitWidth,
+                                                ),
                                               ),
                                         Positioned(
                                           right: 0,
                                           top: 0,
                                           child: Container(
-                                            height: 40,
-                                            width: 40,
+                                            height: 45,
+                                            width: 45,
                                             margin: const EdgeInsets.all(5),
-                                            decoration: const BoxDecoration(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(30)),
-                                                color: Colors.white),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(30)),
+                                                color: Colors.black
+                                                    .withOpacity(0.6)),
                                             child: IconButton(
                                                 onPressed: () {
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
                                                           builder: (context) =>
-                                                              const EditOldBlog(
+                                                              EditOldBlog(
                                                                   title:
-                                                                      "Edit Old Blog")));
+                                                                      "Edit Old Blog",
+                                                                  id: index)));
                                                 },
                                                 icon: const Icon(Icons.edit,
-                                                    size: 16,
-                                                    color: Colors.black)),
+                                                    size: 25,
+                                                    color: Colors.white)),
                                           ),
                                         ),
                                       ]),
-                                      const SizedBox(height: 05),
-                                      const Align(
+                                      const SizedBox(height: 10),
+                                      Align(
                                         alignment: Alignment.bottomRight,
                                         child: Padding(
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                               horizontal: 8),
                                           child: Text(
-                                              "snapshot.data![index].title",
-                                              style: TextStyle(
+                                              snapshot.data![index].title,
+                                              style: const TextStyle(
                                                   color: Colors.black,
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold)),
                                         ),
                                       ),
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
                                             vertical: 10, horizontal: 10),
-                                        child: Text(
-                                            "snapshot.data![index].desc",
-                                            style:
-                                                TextStyle(color: Colors.black)),
+                                        child: Text(snapshot.data![index].desc,
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black)),
                                       ),
                                     ],
                                   ),

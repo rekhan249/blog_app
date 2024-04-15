@@ -1,14 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:typed_data';
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/blogs_model.dart';
+import 'package:blogs_app/providers_controllers/gallery_image.dart';
 import 'package:blogs_app/screens/blogs_screen.dart';
 import 'package:blogs_app/widgets/custom_text_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddNewBlogsScreen extends StatefulWidget {
@@ -22,11 +20,9 @@ class AddNewBlogsScreen extends StatefulWidget {
 class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
   @override
   Widget build(BuildContext context) {
-    final idController = TextEditingController();
     final titleController = TextEditingController();
-    final dateTimeController = TextEditingController();
     final manTextController = TextEditingController();
-    Provider.of<DateProvider>(context, listen: false);
+
     Provider.of<GalleryImageProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +43,7 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -88,16 +84,30 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
                     child: Container(
                       child: gIP.profile == null
                           ? Container(
-                              margin: const EdgeInsets.all(10),
-                              child:
-                                  const Text("No Image yet Please Select one"),
-                            )
-                          : Container(
-                              height: 300,
-                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              margin: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: MemoryImage(gIP.profile!))),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(80)),
+                                  border: Border.all(
+                                      width: 5,
+                                      color:
+                                          const Color.fromARGB(255, 1, 105, 91)
+                                              .withOpacity(0.4))),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                size: 50,
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(25)),
+                              child: Image.memory(
+                                gIP.profile!,
+                                height: 250,
+                                width: 340,
+                                fit: BoxFit.fill,
+                              ),
                             ),
                     ),
                   ),
@@ -105,47 +115,10 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
               ),
               const SizedBox(height: 10),
               CustomTextFormField(
-                anyName: idController,
-                textHint: "Enter id here",
-                value: 1,
-                onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              CustomTextFormField(
                 anyName: titleController,
                 textHint: "Enter title here",
                 value: 1,
                 onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              Consumer<DateProvider>(
-                builder: (context, dP, child) => TextFormField(
-                  controller: dateTimeController,
-                  readOnly: true,
-                  onTap: () async {
-                    dateTimeController.text = (await dP.selectDate(context))!;
-                  },
-                  style: const TextStyle(color: Colors.white),
-                  cursorColor: Colors.white,
-                  decoration: InputDecoration(
-                      fillColor: const Color.fromARGB(255, 1, 105, 91)
-                          .withOpacity(0.4),
-                      filled: true,
-                      hintText: "Select Date",
-                      hintStyle: const TextStyle(color: Colors.white),
-                      contentPadding:
-                          const EdgeInsets.only(left: 15, top: 5, bottom: 5),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.white, width: 1)),
-                      enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white, width: 1),
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(5),
-                              bottomRight: Radius.circular(5))),
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide.none)),
-                ),
               ),
               const SizedBox(height: 10),
               CustomTextFormField(
@@ -177,10 +150,7 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
                                 listen: false)
                             .profile,
                         titleController.text,
-                        Provider.of<DateProvider>(context, listen: false)
-                            .selectedDate,
-                        manTextController.text,
-                        idController.text);
+                        manTextController.text);
                   },
                 ),
               ),
@@ -191,69 +161,25 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
     );
   }
 
-  addDataInDatebase(
-      image, String title, selectedDate, String desc, String id) async {
+  addDataInDatebase(image, String title, String desc) async {
     Blogs blogs = Blogs(
-        id: int.parse(id),
         title: title,
         desc: desc,
-        dateTime: DateTime.parse(selectedDate.toString()),
+        dateTime: DateTime.now().toIso8601String(),
         image: image);
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
-      blogsDatabase.create(blogs).then((value) {
-        print("=====================<${value.toMap()}");
+      blogsDatabase.create(blogs).whenComplete(() {
+        Fluttertoast.showToast(msg: "Data save successfully");
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BlogScreen(),
+            ));
       });
-
-      Fluttertoast.showToast(msg: "Creat Table and Data Successfully");
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const BlogScreen(),
-          ));
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");
     }
-  }
-}
-
-class GalleryImageProvider with ChangeNotifier {
-  Uint8List? _profile;
-  get profile => _profile;
-
-  uploadImage() async {
-    final XFile? imagePro = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, imageQuality: 50);
-
-    if (imagePro != null) {
-      _profile = await imagePro.readAsBytes();
-    } else {
-      _profile = null;
-    }
-    notifyListeners();
-  }
-}
-
-class DateProvider with ChangeNotifier {
-  DateTime? _selectedDate = DateTime.now();
-
-  get selectedDate => _selectedDate;
-
-  Future<String?> selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: _selectedDate!,
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2099));
-
-    if (picked != null && picked != _selectedDate) {
-      _selectedDate = picked;
-      var dateValue = DateFormat("d/MM/yyyy HH:mm:ss").format(_selectedDate!);
-      notifyListeners();
-      return dateValue;
-    }
-    notifyListeners();
-    return null;
   }
 }

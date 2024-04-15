@@ -1,12 +1,17 @@
+import 'package:blogs_app/database_sqflite/database_sqflite.dart';
+import 'package:blogs_app/models/auth_models/signup_model.dart';
 import 'package:blogs_app/screens/auth_screens/signup_screen.dart';
 import 'package:blogs_app/screens/blogs_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -30,6 +35,7 @@ class SignInScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                         hintText: "Email",
                         border: OutlineInputBorder(
@@ -42,6 +48,7 @@ class SignInScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextField(
+                    controller: passwordController,
                     decoration: InputDecoration(
                       hintText: "Password",
                       border: OutlineInputBorder(
@@ -67,11 +74,9 @@ class SignInScreen extends StatelessWidget {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const BlogScreen()));
+                    onPressed: () async {
+                      await formSubmittionAndAuthenticate(emailController.text,
+                          passwordController.text, context);
                     },
                     style: ElevatedButton.styleFrom(
                       shape: const RoundedRectangleBorder(
@@ -112,5 +117,23 @@ class SignInScreen extends StatelessWidget {
             ))
       ],
     );
+  }
+
+  formSubmittionAndAuthenticate(
+    String email,
+    String password,
+    BuildContext context,
+  ) async {
+    SignUpModel signUpModel = SignUpModel(email, password);
+    try {
+      BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
+      blogsDatabase.createUserWhileSignIn(signUpModel).whenComplete(() {
+        Fluttertoast.showToast(msg: "Sign-In successfully");
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const BlogScreen()));
+      });
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Something wrong $e");
+    }
   }
 }

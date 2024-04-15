@@ -1,19 +1,20 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:typed_data';
+
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/blogs_model.dart';
+import 'package:blogs_app/providers_controllers/gallery_image.dart';
 import 'package:blogs_app/screens/blogs_screen.dart';
 import 'package:blogs_app/widgets/custom_text_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class EditOldBlog extends StatefulWidget {
   final String title;
-  const EditOldBlog({super.key, required this.title});
+  final int id;
+  const EditOldBlog({super.key, required this.title, required this.id});
 
   @override
   State<EditOldBlog> createState() => _EditOldBlogState();
@@ -21,18 +22,34 @@ class EditOldBlog extends StatefulWidget {
 
 class _EditOldBlogState extends State<EditOldBlog> {
   BlogsDatabase blogsDatabase = BlogsDatabase.instance;
+  final titleController = TextEditingController();
+  final manTextController = TextEditingController();
+  Uint8List? uint8listImage;
   @override
   void initState() {
+    getAllData();
     super.initState();
+  }
+
+  getAllData() async {
+    Blogs? blogs = await blogsDatabase.getSingleBlog(widget.id);
+    titleController.text = blogs!.title;
+    manTextController.text = blogs.desc;
+    setState(() {
+      uint8listImage = blogs.image;
+    });
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    manTextController.dispose();
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final idController = TextEditingController();
-    final titleController = TextEditingController();
-    final dateTimeController = TextEditingController();
-    final manTextController = TextEditingController();
-    Provider.of<DateProvider>(context, listen: false);
     Provider.of<GalleryImageProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
@@ -92,11 +109,13 @@ class _EditOldBlogState extends State<EditOldBlog> {
                       );
                     },
                     child: Container(
-                      child: gIP.profile == null
+                      child: uint8listImage!.isNotEmpty
                           ? Container(
-                              margin: const EdgeInsets.all(10),
-                              child:
-                                  const Text("No Image yet Please Select one"),
+                              height: 300,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: MemoryImage(uint8listImage!))),
                             )
                           : Container(
                               height: 300,
@@ -111,47 +130,10 @@ class _EditOldBlogState extends State<EditOldBlog> {
               ),
               const SizedBox(height: 10),
               CustomTextFormField(
-                anyName: idController,
-                textHint: "Enter id here",
-                value: 1,
-                onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              CustomTextFormField(
                 anyName: titleController,
                 textHint: "Enter title here",
                 value: 1,
                 onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              Consumer<DateProvider>(
-                builder: (context, dP, child) => TextFormField(
-                  controller: dateTimeController,
-                  readOnly: true,
-                  onTap: () async {
-                    dateTimeController.text = (await dP.selectDate(context))!;
-                  },
-                  style: const TextStyle(color: Colors.white),
-                  cursorColor: Colors.white,
-                  decoration: InputDecoration(
-                      fillColor: const Color.fromARGB(255, 1, 105, 91)
-                          .withOpacity(0.4),
-                      filled: true,
-                      hintText: "Select Date",
-                      hintStyle: const TextStyle(color: Colors.white),
-                      contentPadding:
-                          const EdgeInsets.only(left: 15, top: 5, bottom: 5),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.white, width: 1)),
-                      enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white, width: 1),
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(5),
-                              bottomRight: Radius.circular(5))),
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide.none)),
-                ),
               ),
               const SizedBox(height: 10),
               CustomTextFormField(
@@ -183,10 +165,8 @@ class _EditOldBlogState extends State<EditOldBlog> {
                                 listen: false)
                             .profile,
                         titleController.text,
-                        Provider.of<DateProvider>(context, listen: false)
-                            .selectedDate,
                         manTextController.text,
-                        idController.text);
+                        widget.id);
                   },
                 ),
               ),
@@ -197,66 +177,25 @@ class _EditOldBlogState extends State<EditOldBlog> {
     );
   }
 
-  addDataInDatebase(image, String title, selectedDate, String desc, String id) {
+  addDataInDatebase(image, String title, String desc, int id) async {
     Blogs blogs = Blogs(
-        id: int.parse(id),
         title: title,
         desc: desc,
-        dateTime: DateTime.parse(selectedDate.toString()),
+        dateTime: DateTime.now().toIso8601String(),
         image: image);
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
-      blogsDatabase.create(blogs);
-
-      Fluttertoast.showToast(msg: "Update date Successfully");
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const BlogScreen(),
-          ));
+      blogsDatabase.update(blogs, id).whenComplete(() {
+        Fluttertoast.showToast(msg: "Update data successfully");
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BlogScreen(),
+            ));
+      });
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");
     }
-  }
-}
-
-class GalleryImageProvider with ChangeNotifier {
-  Uint8List? _profile;
-  get profile => _profile;
-
-  uploadImage() async {
-    final XFile? imagePro = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, imageQuality: 50);
-
-    if (imagePro != null) {
-      _profile = await imagePro.readAsBytes();
-    } else {
-      _profile = null;
-    }
-    notifyListeners();
-  }
-}
-
-class DateProvider with ChangeNotifier {
-  DateTime? _selectedDate = DateTime.now();
-
-  get selectedDate => _selectedDate;
-
-  Future<String?> selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: _selectedDate!,
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2099));
-
-    if (picked != null && picked != _selectedDate) {
-      _selectedDate = picked;
-      var dateValue = DateFormat("d/MM/yyyy HH:mm:ss").format(_selectedDate!);
-      notifyListeners();
-      return dateValue;
-    }
-    notifyListeners();
-    return null;
   }
 }

@@ -1,9 +1,11 @@
+import 'package:blogs_app/models/auth_models/signup_model.dart';
 import 'package:blogs_app/models/blogs_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 class BlogsDatabase {
   static final BlogsDatabase instance = BlogsDatabase._init();
   static Database? _database;
+
   BlogsDatabase._init();
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -20,54 +22,60 @@ class BlogsDatabase {
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
-    await db.execute('''
-      CREATE TABLE $tableBlogs ( 
-      ${BlogsFields.id} $idType,
-      ${BlogsFields.title} $textType,
-      ${BlogsFields.desc} $textType,
-      ${BlogsFields.dateTime} $textType,
-      ${BlogsFields.image} image BLOB
-      )
-    ''');
+    const blob = 'BLOB';
+    await db.execute(
+        'CREATE TABLE $tableBlogs (id $idType, $title $textType, $desc $textType, $datetime $textType, $image $blob)');
+
+    await db.execute(
+        'CREATE TABLE $tableUsers (id $idType, $username $textType, $email $textType, $password $textType, $confirmPassoword $textType)');
   }
+
+  ///  *****************************************   ///
+  ///  Database Name is blogs and their columns   ///
+  /// *****************************************  ///
+
+  static const String tableBlogs = 'blogs';
+  static const String title = 'title';
+  static const String desc = 'desc';
+  static const String datetime = 'datetime';
+  static const String image = 'image';
+
+  ///  *****************************************   ///
+  ///  Database Name is users and their columns   ///
+  /// *****************************************  ///
+
+  static const String tableUsers = 'users';
+  static const String username = 'username';
+  static const String email = 'email';
+  static const String password = 'password';
+  static const String confirmPassoword = 'confirmPassoword';
 
   Future close() async {
     final db = await instance.database;
     db.close();
   }
 
-  /// ******************************************** ///
-  ///   Create Table and Insert Data in Database  ///
+  /// ***************************************************** ///
+  ///   Create Table of blogs and Insert Data in Database  ///
+  /// *************************************************** ///
+
+  Future<void> create(Blogs blogs) async {
+    final db = await instance.database;
+    await db.insert(tableBlogs, blogs.toMap());
+  }
+
   /// ****************************************** ///
-
-  Future<Blogs> create(Blogs blogs) async {
+  ///   Read Data from Table blogs in Database  ///
+  /// **************************************** ///
+  Future<Blogs?> getSingleBlog(int id) async {
     final db = await instance.database;
-    final id = await db.insert(tableBlogs, blogs.toMap());
-    return blogs.copy(id: id);
+    final maps = await db.rawQuery('SELECT * FROM blogs WHERE id = ?', [id]);
+    return maps.isNotEmpty ? Blogs.fromMap(maps.first) : null;
   }
 
-  /// ************************************ ///
-  ///   Read Data from Table in Database  ///
-  /// ********************************** ///
-
-  Future<Blogs> readBlog(int id) async {
-    final db = await instance.database;
-    final maps = await db.query(
-      tableBlogs,
-      columns: BlogsFields.values,
-      where: '${BlogsFields.id} = ?',
-      whereArgs: [id],
-    );
-    if (maps.isNotEmpty) {
-      return Blogs.fromMap(maps.first);
-    } else {
-      throw Exception('ID $id not found');
-    }
-  }
-
-  /// ***************************************** ///
-  ///   Read All Data from Table in Database   ///
-  /// *************************************** ///
+  /// *********************************************** ///
+  ///   Read All Data from Table blogs in Database   ///
+  /// ********************************************* ///
 
   Future<List<Blogs>> readAllreadBlogs() async {
     final db = await instance.database;
@@ -75,51 +83,86 @@ class BlogsDatabase {
     List<Blogs> blogsList = [];
     for (var element in result) {
       Blogs blogs = Blogs.fromMap(element);
-      print("object ${blogs.toMap()}");
       blogsList.add(blogs);
     }
     return blogsList;
   }
 
-  /// ************************************** ///
-  ///   Update Data from Table in Database  ///
-  /// ************************************ ///
-
-  Future<int> update(Blogs blogs) async {
+  /// ******************************************** ///
+  ///   Update Data from Table blogs in Database  ///
+  /// ****************************************** ///
+  Future<int> update(Blogs blogs, int id) async {
     final db = await instance.database;
-    return db.update(
-      tableBlogs,
-      blogs.toMap(),
-      where: '${BlogsFields.id} = ?',
-      whereArgs: [blogs.id],
-    );
+    return await db.rawUpdate(
+        'UPDATE $tableBlogs SET title = ?, desc = ?, datetime = ?, image = ? WHERE id = ?',
+        [blogs.title, blogs.desc, blogs.dateTime, blogs.image, id]);
   }
 
-  /// ************************************** ///
-  ///   Delete Data from Table in Database  ///
-  /// ************************************ ///
-
+  /// ******************************************** ///
+  ///   Delete Data from Table blogs in Database  ///
+  /// ****************************************** ///
   Future<int> delete(int id) async {
     final db = await instance.database;
-    return await db.delete(
-      tableBlogs,
-      where: '${BlogsFields.id} = ?',
-      whereArgs: [id],
-    );
+    return await db.rawDelete('DELETE FROM $tableBlogs WHERE id = ?', [id]);
   }
-}
 
-const String tableBlogs = 'blogs';
+  /// ************************************************************ ///
+  ///   Here are the fuctions of the auth authentication          ///
+  /// *********************************************************** ///
 
-class BlogsFields {
-  static final List<String> values = [
-    /// Add all fields
-    id, title, desc, dateTime, image
-  ];
+  /// ***************************************************** ///
+  ///   Create Table of blogs and Insert Data in Database  ///
+  /// *************************************************** ///
 
-  static const String id = '_id';
-  static const String title = 'title';
-  static const String desc = 'desc';
-  static const String dateTime = 'dateTime';
-  static const String image = 'image';
+  Future<void> createUserWhileSignUp(SignUpModel signUpModel) async {
+    final db = await instance.database;
+    await db.insert(tableBlogs, signUpModel.toMap());
+  }
+
+  Future<void> createUserWhileSignIn(SignUpModel signUpModel) async {
+    final db = await instance.database;
+    await db.insert(tableBlogs, signUpModel.toMap());
+  }
+
+  /// ****************************************** ///
+  ///   Read Data from Table blogs in Database  ///
+  /// **************************************** ///
+  Future<SignUpModel?> getSingleUser(int id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery('SELECT * FROM blogs WHERE id = ?', [id]);
+    return maps.isNotEmpty ? SignUpModel.fromMap(maps.first) : null;
+  }
+
+  /// *********************************************** ///
+  ///   Read All Data from Table blogs in Database   ///
+  /// ********************************************* ///
+
+  Future<List<SignUpModel>> readAllUsers() async {
+    final db = await instance.database;
+    final result = await db.query(tableBlogs);
+    List<SignUpModel> blogsList = [];
+    for (var element in result) {
+      SignUpModel blogs = SignUpModel.fromMap(element);
+      blogsList.add(blogs);
+    }
+    return blogsList;
+  }
+
+  /// ******************************************** ///
+  ///   Update Data from Table blogs in Database  ///
+  /// ****************************************** ///
+  Future<int> updateUser(Blogs blogs, int id) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBlogs SET title = ?, desc = ?, datetime = ?, image = ? WHERE id = ?',
+        [blogs.title, blogs.desc, blogs.dateTime, blogs.image, id]);
+  }
+
+  /// ******************************************** ///
+  ///   Delete Data from Table blogs in Database  ///
+  /// ****************************************** ///
+  Future<int> deleteUser(int id) async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBlogs WHERE id = ?', [id]);
+  }
 }

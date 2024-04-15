@@ -1,4 +1,4 @@
-import 'package:blogs_app/screens/blogs/add_new_blog.dart';
+import 'package:blogs_app/providers_controllers/gallery_image.dart';
 import 'package:blogs_app/screens/blogs_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,12 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => GalleryImageProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => DateProvider(),
-        ),
+        ChangeNotifierProvider(create: (context) => GalleryImageProvider())
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
