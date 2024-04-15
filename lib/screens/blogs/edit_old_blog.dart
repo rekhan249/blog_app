@@ -24,7 +24,7 @@ class _EditOldBlogState extends State<EditOldBlog> {
   BlogsDatabase blogsDatabase = BlogsDatabase.instance;
   final titleController = TextEditingController();
   final manTextController = TextEditingController();
-  Uint8List? uint8listImage;
+
   @override
   void initState() {
     getAllData();
@@ -35,9 +35,8 @@ class _EditOldBlogState extends State<EditOldBlog> {
     Blogs? blogs = await blogsDatabase.getSingleBlog(widget.id);
     titleController.text = blogs!.title;
     manTextController.text = blogs.desc;
-    setState(() {
-      uint8listImage = blogs.image;
-    });
+    Provider.of<GalleryImageProvider>(context, listen: false)
+        .oldImage(blogs.image);
   }
 
   @override
@@ -109,13 +108,12 @@ class _EditOldBlogState extends State<EditOldBlog> {
                       );
                     },
                     child: Container(
-                      child: uint8listImage!.isNotEmpty
+                      child: gIP.profile!.isNotEmpty
                           ? Container(
-                              height: 300,
+                              height: 80,
+                              padding: const EdgeInsets.all(10),
                               width: double.infinity,
-                              decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: MemoryImage(uint8listImage!))),
+                              child: const Icon(Icons.camera),
                             )
                           : Container(
                               height: 300,
@@ -187,7 +185,7 @@ class _EditOldBlogState extends State<EditOldBlog> {
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
       blogsDatabase.update(blogs, id).whenComplete(() {
-        Fluttertoast.showToast(msg: "Update data successfully");
+        Fluttertoast.showToast(msg: "Update data Successfully");
         Navigator.push(
             context,
             MaterialPageRoute(

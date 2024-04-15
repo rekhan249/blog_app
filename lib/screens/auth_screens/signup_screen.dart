@@ -162,8 +162,8 @@ class SignUpScreen extends StatelessWidget {
         SignUpModel(username, email, password, confirmPassword);
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
-      blogsDatabase.createUser(signUpModel).whenComplete(() {
-        Fluttertoast.showToast(msg: "Creat Table and Data Successfully");
+      blogsDatabase.createUserWhileSignUp(signUpModel).whenComplete(() {
+        Fluttertoast.showToast(msg: "Data save successfully");
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const SignInScreen()));
       });

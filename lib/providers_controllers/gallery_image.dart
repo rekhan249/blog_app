@@ -7,6 +7,11 @@ class GalleryImageProvider with ChangeNotifier {
   Uint8List? _profile;
   get profile => _profile;
 
+  oldImage(Uint8List? oldImage) {
+    _profile = oldImage;
+    notifyListeners();
+  }
+
   uploadImage() async {
     final XFile? imagePro = await ImagePicker()
         .pickImage(source: ImageSource.gallery, imageQuality: 50);
