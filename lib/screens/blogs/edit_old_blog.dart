@@ -21,9 +21,11 @@ class EditOldBlog extends StatefulWidget {
 }
 
 class _EditOldBlogState extends State<EditOldBlog> {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   BlogsDatabase blogsDatabase = BlogsDatabase.instance;
   final titleController = TextEditingController();
   final manTextController = TextEditingController();
+  Uint8List? _oldImage;
 
   @override
   void initState() {
@@ -35,21 +37,13 @@ class _EditOldBlogState extends State<EditOldBlog> {
     Blogs? blogs = await blogsDatabase.getSingleBlog(widget.id);
     titleController.text = blogs!.title;
     manTextController.text = blogs.desc;
-    Provider.of<GalleryImageProvider>(context, listen: false)
-        .oldImage(blogs.image);
-  }
-
-  @override
-  void dispose() {
-    titleController.dispose();
-    manTextController.dispose();
-
-    super.dispose();
+    setState(() {
+      _oldImage = blogs.image;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<GalleryImageProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -71,104 +65,128 @@ class _EditOldBlogState extends State<EditOldBlog> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Center(
-                child: Consumer<GalleryImageProvider>(
-                  builder: (context, gIP, child) => GestureDetector(
-                    onTap: () async {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return SafeArea(
-                            child: Wrap(
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.image),
-                                  title:
-                                      const Text('Press here and goto gallery'),
-                                  onTap: () async {
-                                    await gIP.uploadImage();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                ListTile(
-                                  leading: const Icon(Icons.camera),
-                                  title:
-                                      const Text('Press here and goto Camera'),
-                                  onTap: () async {
-                                    await gIP.uploadImage();
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
-                      child: gIP.profile!.isNotEmpty
-                          ? Container(
-                              height: 80,
-                              padding: const EdgeInsets.all(10),
-                              width: double.infinity,
-                              child: const Icon(Icons.camera),
-                            )
-                          : Container(
-                              height: 300,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: MemoryImage(gIP.profile!))),
-                            ),
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                Center(
+                  child: Consumer<GalleryImageProvider>(
+                    builder: (context, gIP, child) => GestureDetector(
+                      onTap: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SafeArea(
+                              child: Wrap(
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(Icons.image),
+                                    title: const Text(
+                                        'Press here and goto gallery'),
+                                    onTap: () async {
+                                      await gIP.uploadImage();
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.camera),
+                                    title: const Text(
+                                        'Press here and goto Camera'),
+                                    onTap: () async {
+                                      await gIP.uploadImage();
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        child: gIP.profile == null
+                            ? Column(
+                                children: [
+                                  _oldImage!.isEmpty
+                                      ? Container(
+                                          height: 80,
+                                          padding: const EdgeInsets.all(10),
+                                          width: double.infinity,
+                                          child: const Text(
+                                              "Something wrong no image"),
+                                        )
+                                      : Container(
+                                          height: 80,
+                                          padding: const EdgeInsets.all(10),
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                  image:
+                                                      MemoryImage(_oldImage!))),
+                                        ),
+                                ],
+                              )
+                            : Container(
+                                height: 300,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                        image: MemoryImage(gIP.profile!))),
+                              ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              CustomTextFormField(
-                anyName: titleController,
-                textHint: "Enter title here",
-                value: 1,
-                onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              CustomTextFormField(
-                anyName: manTextController,
-                textHint: "Enter main text here",
-                value: 16,
-                onTap: () {},
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                      shape: const MaterialStatePropertyAll(
-                          RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5)))),
-                      backgroundColor: MaterialStateProperty.all(
-                          const Color.fromARGB(255, 1, 105, 91)
-                              .withOpacity(0.4))),
-                  child: const Text(
-                    'Add Blog',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: () async {
-                    await addDataInDatebase(
-                        Provider.of<GalleryImageProvider>(context,
-                                listen: false)
-                            .profile,
-                        titleController.text,
-                        manTextController.text,
-                        widget.id);
-                  },
+                const SizedBox(height: 10),
+                CustomTextFormField(
+                  anyName: titleController,
+                  textHint: "Enter title here",
+                  value: 1,
+                  onTap: () {},
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                CustomTextFormField(
+                  anyName: manTextController,
+                  textHint: "Enter main text here",
+                  value: 16,
+                  onTap: () {},
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                        shape: const MaterialStatePropertyAll(
+                            RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(5)))),
+                        backgroundColor: MaterialStateProperty.all(
+                            const Color.fromARGB(255, 1, 105, 91)
+                                .withOpacity(0.4))),
+                    child: const Text(
+                      'Add Blog',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () async {
+                      bool isValid = formKey.currentState!.validate();
+                      FocusScope.of(context).unfocus();
+                      if (!isValid) {
+                        return;
+                      }
+                      formKey.currentState!.save();
+                      await addDataInDatebase(
+                          Provider.of<GalleryImageProvider>(context,
+                                  listen: false)
+                              .profile,
+                          titleController.text,
+                          manTextController.text,
+                          widget.id);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -184,7 +202,7 @@ class _EditOldBlogState extends State<EditOldBlog> {
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
-      blogsDatabase.update(blogs, id).whenComplete(() {
+      blogsDatabase.updateData(blogs, id).whenComplete(() {
         Fluttertoast.showToast(msg: "Update data Successfully");
         Navigator.push(
             context,

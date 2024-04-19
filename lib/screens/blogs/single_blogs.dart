@@ -1,5 +1,4 @@
 import 'package:blogs_app/models/blogs_model.dart';
-import 'package:blogs_app/widgets/custom_text_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -16,7 +15,7 @@ class _SingleBlogState extends State<SingleBlog> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final searchController = TextEditingController();
+
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -30,12 +29,6 @@ class _SingleBlogState extends State<SingleBlog> {
                   child: Column(
                     children: [
                       Column(children: [
-                        CustomTextFormField(
-                          anyName: searchController,
-                          textHint: "Search here",
-                          value: 1,
-                          onTap: () {},
-                        ),
                         Align(
                           alignment: Alignment.bottomRight,
                           child: Padding(

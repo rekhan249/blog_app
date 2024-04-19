@@ -1,28 +1,27 @@
 class SignUpModel {
-  String? username;
-  String? email;
-  String? password;
-  String? confirmPassoword;
+  final String username;
+  final String email;
+  final String password;
+  final String confirmPassword;
+
   SignUpModel(
-      [this.username, this.email, this.password, this.confirmPassoword]);
+      {required this.username,
+      required this.email,
+      required this.password,
+      required this.confirmPassword});
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'username': username,
       'email': email,
       'password': password,
-      'confirmPassoword': confirmPassoword,
+      'confirmPassoword': confirmPassword,
     };
   }
 
-  factory SignUpModel.fromMap(Map<String, dynamic> map) {
-    return SignUpModel(
-      map['username'] != null ? map['username'] as String : null,
-      map['email'] != null ? map['email'] as String : null,
-      map['password'] != null ? map['password'] as String : null,
-      map['confirmPassoword'] != null
-          ? map['confirmPassoword'] as String
-          : null,
-    );
-  }
+  factory SignUpModel.fromMap(Map<String, dynamic> map) => SignUpModel(
+      username: map['username'],
+      email: map['email'],
+      password: map['password'],
+      confirmPassword: map['confirmPassword']);
 }

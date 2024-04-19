@@ -1,5 +1,7 @@
+import 'package:blogs_app/models/auth_models/signin_model.dart';
 import 'package:blogs_app/models/auth_models/signup_model.dart';
 import 'package:blogs_app/models/blogs_model.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sqflite/sqflite.dart';
 
 class BlogsDatabase {
@@ -91,19 +93,24 @@ class BlogsDatabase {
   /// ******************************************** ///
   ///   Update Data from Table blogs in Database  ///
   /// ****************************************** ///
-  Future<int> update(Blogs blogs, int id) async {
+  Future<int> updateData(Blogs blogs, int id) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableBlogs SET title = ?, desc = ?, datetime = ?, image = ? WHERE id = ?',
-        [blogs.title, blogs.desc, blogs.dateTime, blogs.image, id]);
+        'UPDATE $tableBlogs SET title = ?, desc = ?, image = ? WHERE id = ?',
+        [blogs.title, blogs.desc, blogs.image, id]);
   }
 
   /// ******************************************** ///
   ///   Delete Data from Table blogs in Database  ///
   /// ****************************************** ///
-  Future<int> delete(int id) async {
+  Future<void> deleteData(int id) async {
     final db = await instance.database;
-    return await db.rawDelete('DELETE FROM $tableBlogs WHERE id = ?', [id]);
+    try {
+      await db.rawDelete('DELETE FROM blogs WHERE id = ?', [id]);
+      Fluttertoast.showToast(msg: "Delete data successfully");
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Something wrong$e");
+    }
   }
 
   /// ************************************************************ ///
@@ -116,53 +123,57 @@ class BlogsDatabase {
 
   Future<void> createUserWhileSignUp(SignUpModel signUpModel) async {
     final db = await instance.database;
-    await db.insert(tableBlogs, signUpModel.toMap());
+    await db.insert(tableUsers, signUpModel.toMap());
   }
 
-  Future<void> createUserWhileSignIn(SignUpModel signUpModel) async {
+  Future<void> createUserWhileSignIn(SignInModel signInModel) async {
     final db = await instance.database;
-    await db.insert(tableBlogs, signUpModel.toMap());
+    await db.insert(tableUsers, signInModel.toMap());
   }
 
   /// ****************************************** ///
   ///   Read Data from Table blogs in Database  ///
   /// **************************************** ///
-  Future<SignUpModel?> getSingleUser(int id) async {
-    final db = await instance.database;
-    final maps = await db.rawQuery('SELECT * FROM blogs WHERE id = ?', [id]);
-    return maps.isNotEmpty ? SignUpModel.fromMap(maps.first) : null;
-  }
+  // Future<SignUpModel?> getSingleUser(int id) async {
+  //   final db = await instance.database;
+  //   final maps = await db.rawQuery('SELECT * FROM users WHERE id = ?', [id]);
+  //   return maps.isNotEmpty ? SignUpModel.fromMap(maps.first) : null;
+  // }
 
   /// *********************************************** ///
   ///   Read All Data from Table blogs in Database   ///
   /// ********************************************* ///
 
-  Future<List<SignUpModel>> readAllUsers() async {
-    final db = await instance.database;
-    final result = await db.query(tableBlogs);
-    List<SignUpModel> blogsList = [];
-    for (var element in result) {
-      SignUpModel blogs = SignUpModel.fromMap(element);
-      blogsList.add(blogs);
-    }
-    return blogsList;
-  }
+  // Future<List<SignUpModel>> readAllUsers() async {
+  //   final db = await instance.database;
+  //   final result = await db.query(tableBlogs);
+  //   List<SignUpModel> blogsList = [];
+  //   for (var element in result) {
+  //     SignUpModel blogs = SignUpModel.fromMap(element);
+  //     blogsList.add(blogs);
+  //   }
+  //   return blogsList;
+  // }
 
   /// ******************************************** ///
   ///   Update Data from Table blogs in Database  ///
   /// ****************************************** ///
-  Future<int> updateUser(Blogs blogs, int id) async {
-    final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableBlogs SET title = ?, desc = ?, datetime = ?, image = ? WHERE id = ?',
-        [blogs.title, blogs.desc, blogs.dateTime, blogs.image, id]);
-  }
+  // Future<int> updateUser(Blogs blogs, int id) async {
+  //   final db = await instance.database;
+  //   return await db.rawUpdate(
+  //       'UPDATE $tableUsers SET title = ?, desc = ?, datetime = ?, image = ? WHERE id = ?',
+  //       [blogs.title, blogs.desc, blogs.dateTime, blogs.image, id]);
+  // }
 
   /// ******************************************** ///
   ///   Delete Data from Table blogs in Database  ///
   /// ****************************************** ///
-  Future<int> deleteUser(int id) async {
+  Future<void> deleteUser(int id) async {
     final db = await instance.database;
-    return await db.rawDelete('DELETE FROM $tableBlogs WHERE id = ?', [id]);
+    try {
+      await db.rawDelete('DELETE FROM $tableUsers WHERE id = ?', [id]);
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Something wrong$e");
+    }
   }
 }
