@@ -7,6 +7,15 @@ class MultiSelectProvider with ChangeNotifier {
   void selectOrRemoveObjectToAndFrom(
       int index, Blogs singleBlogs, List<Blogs?> blogList) {
     blogList[index]!.isSelected = !blogList[index]!.isSelected;
+    if (blogList[index]!.isSelected == true) {
+      _multiSelectOrRemove.add(blogList[index]!);
+      print(
+          "=========================== ${_multiSelectOrRemove.map((e) => e.toMap())}");
+    } else if (blogList[index]!.isSelected == false) {
+      _multiSelectOrRemove.remove(blogList[index]!);
+      print(
+          "=========================== ${_multiSelectOrRemove.map((e) => e.toMap())}");
+    }
     notifyListeners();
   }
 }
