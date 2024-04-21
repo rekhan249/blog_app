@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class CustomTextFormField extends StatelessWidget {
   final String textHint;
   final int value;
-  final VoidCallback onTap;
+  final Function(String)? onChange;
   const CustomTextFormField({
     super.key,
     required TextEditingController anyName,
     required this.textHint,
     required this.value,
-    required this.onTap,
+    required this.onChange,
   }) : _anyName = anyName;
 
   final TextEditingController _anyName;
@@ -36,7 +36,7 @@ class CustomTextFormField extends StatelessWidget {
                   bottomLeft: Radius.circular(5),
                   bottomRight: Radius.circular(5))),
           border: const UnderlineInputBorder(borderSide: BorderSide.none)),
-      onTap: onTap,
+      onChanged: onChange,
     );
   }
 }

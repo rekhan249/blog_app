@@ -1,5 +1,6 @@
 import 'package:blogs_app/providers_controllers/gallery_image.dart';
-import 'package:blogs_app/screens/blogs_screen.dart';
+import 'package:blogs_app/providers_controllers/remove_blogs.dart';
+import 'package:blogs_app/utils/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => GalleryImageProvider())
+        ChangeNotifierProvider(create: (context) => GalleryImageProvider()),
+        ChangeNotifierProvider(create: (context) => SearchProvider()),
+        ChangeNotifierProvider(create: (context) => MultiSelectProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -25,7 +28,8 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.transparent),
           useMaterial3: true,
         ),
-        home: const BlogScreen(),
+        initialRoute: RouteGenerator.blogs,
+        onGenerateRoute: RouteGenerator.generateRoute,
       ),
     );
   }

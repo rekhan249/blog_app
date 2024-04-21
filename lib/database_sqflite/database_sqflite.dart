@@ -26,10 +26,10 @@ class BlogsDatabase {
     const textType = 'TEXT NOT NULL';
     const blob = 'BLOB';
     await db.execute(
-        'CREATE TABLE $tableBlogs (id $idType, $title $textType, $desc $textType, $datetime $textType, $image $blob)');
+        'CREATE TABLE $tableBlogs (id $idType, $title $textType, $desc $textType, $datetime TEXT, $image $blob, $isSelected INTEGER)');
 
     await db.execute(
-        'CREATE TABLE $tableUsers (id $idType, $username $textType, $email $textType, $password $textType, $confirmPassoword $textType)');
+        'CREATE TABLE $tableUsers (id $idType, $username TEXT, $email $textType, $password $textType, $confirmPassoword TEXT)');
   }
 
   ///  *****************************************   ///
@@ -41,6 +41,7 @@ class BlogsDatabase {
   static const String desc = 'desc';
   static const String datetime = 'datetime';
   static const String image = 'image';
+  static const String isSelected = 'isSelected';
 
   ///  *****************************************   ///
   ///  Database Name is users and their columns   ///
@@ -52,18 +53,17 @@ class BlogsDatabase {
   static const String password = 'password';
   static const String confirmPassoword = 'confirmPassoword';
 
-  Future close() async {
-    final db = await instance.database;
-    db.close();
-  }
-
   /// ***************************************************** ///
   ///   Create Table of blogs and Insert Data in Database  ///
   /// *************************************************** ///
 
   Future<void> create(Blogs blogs) async {
     final db = await instance.database;
-    await db.insert(tableBlogs, blogs.toMap());
+    await db.insert(
+      tableBlogs,
+      blogs.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   /// ****************************************** ///
@@ -72,7 +72,11 @@ class BlogsDatabase {
   Future<Blogs?> getSingleBlog(int id) async {
     final db = await instance.database;
     final maps = await db.rawQuery('SELECT * FROM blogs WHERE id = ?', [id]);
-    return maps.isNotEmpty ? Blogs.fromMap(maps.first) : null;
+    Blogs? blogs;
+    for (int id = 0; id < maps.length; id++) {
+      blogs = Blogs.fromMap(maps[id]);
+    }
+    return blogs;
   }
 
   /// *********************************************** ///
@@ -81,12 +85,24 @@ class BlogsDatabase {
 
   Future<List<Blogs>> readAllreadBlogs() async {
     final db = await instance.database;
-    final result = await db.query(tableBlogs);
-    List<Blogs> blogsList = [];
-    for (var element in result) {
-      Blogs blogs = Blogs.fromMap(element);
-      blogsList.add(blogs);
-    }
+    List<Map<String, dynamic>> result = await db.query(tableBlogs);
+    List<Blogs> blogsList =
+        result.map((element) => Blogs.fromMap(element)).toList();
+    print("====================${blogsList.map((e) => e.toMap())}");
+    return blogsList;
+  }
+
+  /// *********************************************** ///
+  ///   Search in Data from Table blogs in Database   ///
+  /// ********************************************* ///
+
+  Future<List<Blogs?>?> searchBlogs([String? searchQueary]) async {
+    final db = await instance.database;
+    List<Map<String, dynamic>> result = await db.query(tableBlogs,
+        where: 'title LIKE ?', whereArgs: ['%$searchQueary%']);
+    List<Blogs>? blogsList = result.isEmpty
+        ? []
+        : result.map((element) => Blogs.fromMap(element)).toList();
     return blogsList;
   }
 
@@ -96,8 +112,9 @@ class BlogsDatabase {
   Future<int> updateData(Blogs blogs, int id) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableBlogs SET title = ?, desc = ?, image = ? WHERE id = ?',
-        [blogs.title, blogs.desc, blogs.image, id]);
+      'UPDATE $tableBlogs SET title = ?, desc = ?, image = ? WHERE id = ?',
+      [blogs.title, blogs.desc, blogs.image, id],
+    );
   }
 
   /// ******************************************** ///
@@ -107,6 +124,18 @@ class BlogsDatabase {
     final db = await instance.database;
     try {
       await db.rawDelete('DELETE FROM blogs WHERE id = ?', [id]);
+      Fluttertoast.showToast(msg: "Delete data successfully");
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Something wrong$e");
+    }
+  }
+
+  Future<void> deleteMultiple(List<int> id) async {
+    final db = await instance.database;
+    try {
+      await db.delete(tableBlogs,
+          where: 'id IN (${List.filled(id.length, '?').join(',')})',
+          whereArgs: [id]);
       Fluttertoast.showToast(msg: "Delete data successfully");
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong$e");
@@ -128,7 +157,8 @@ class BlogsDatabase {
 
   Future<void> createUserWhileSignIn(SignInModel signInModel) async {
     final db = await instance.database;
-    await db.insert(tableUsers, signInModel.toMap());
+    await db.insert(tableUsers, signInModel.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// ****************************************** ///
@@ -175,5 +205,10 @@ class BlogsDatabase {
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong$e");
     }
+  }
+
+  Future close() async {
+    final db = await instance.database;
+    db.close();
   }
 }

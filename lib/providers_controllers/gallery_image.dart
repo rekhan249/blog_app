@@ -18,3 +18,14 @@ class GalleryImageProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+class SearchProvider with ChangeNotifier {
+  String? _searchQuery = "";
+
+  get searchQuery => _searchQuery;
+
+  void searchingQuery([String? value]) {
+    _searchQuery = value;
+    notifyListeners();
+  }
+}

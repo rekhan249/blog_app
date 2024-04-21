@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/blogs_model.dart';
 import 'package:blogs_app/providers_controllers/gallery_image.dart';
-import 'package:blogs_app/screens/blogs_screen.dart';
+import 'package:blogs_app/utils/routes.dart';
 import 'package:blogs_app/widgets/custom_text_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -23,6 +23,14 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final titleController = TextEditingController();
   final manTextController = TextEditingController();
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    manTextController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,14 +130,14 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
                   anyName: titleController,
                   textHint: "Enter title here",
                   value: 1,
-                  onTap: () {},
+                  onChange: (value) {},
                 ),
                 const SizedBox(height: 10),
                 CustomTextFormField(
                   anyName: manTextController,
                   textHint: "Enter main text here",
                   value: 16,
-                  onTap: () {},
+                  onChange: (value) {},
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
@@ -177,18 +185,20 @@ class _AddNewBlogsScreenState extends State<AddNewBlogsScreen> {
         title: title,
         desc: desc,
         dateTime: DateTime.now().toIso8601String(),
-        image: image);
+        image: image,
+        isSelected: false);
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
       blogsDatabase.create(blogs).whenComplete(() {
         Fluttertoast.showToast(msg: "Data save successfully");
-
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const BlogScreen(),
-            ));
+        print(")))))))))))))))))))))))) ${blogs.toMap()}");
+        blogsDatabase.searchBlogs();
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RouteGenerator.blogs,
+          (route) => false,
+        );
       });
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");

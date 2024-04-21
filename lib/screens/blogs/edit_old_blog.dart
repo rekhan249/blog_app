@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/blogs_model.dart';
 import 'package:blogs_app/providers_controllers/gallery_image.dart';
-import 'package:blogs_app/screens/blogs_screen.dart';
+import 'package:blogs_app/utils/routes.dart';
 import 'package:blogs_app/widgets/custom_text_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -107,23 +107,14 @@ class _EditOldBlogState extends State<EditOldBlog> {
                         child: gIP.profile == null
                             ? Column(
                                 children: [
-                                  _oldImage!.isEmpty
-                                      ? Container(
-                                          height: 80,
-                                          padding: const EdgeInsets.all(10),
-                                          width: double.infinity,
-                                          child: const Text(
-                                              "Something wrong no image"),
-                                        )
-                                      : Container(
-                                          height: 80,
-                                          padding: const EdgeInsets.all(10),
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                              image: DecorationImage(
-                                                  image:
-                                                      MemoryImage(_oldImage!))),
-                                        ),
+                                  Container(
+                                    height: 80,
+                                    padding: const EdgeInsets.all(10),
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                            image: MemoryImage(_oldImage!))),
+                                  ),
                                 ],
                               )
                             : Container(
@@ -142,14 +133,14 @@ class _EditOldBlogState extends State<EditOldBlog> {
                   anyName: titleController,
                   textHint: "Enter title here",
                   value: 1,
-                  onTap: () {},
+                  onChange: (value) {},
                 ),
                 const SizedBox(height: 10),
                 CustomTextFormField(
                   anyName: manTextController,
                   textHint: "Enter main text here",
                   value: 16,
-                  onTap: () {},
+                  onChange: (value) {},
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
@@ -198,17 +189,15 @@ class _EditOldBlogState extends State<EditOldBlog> {
         title: title,
         desc: desc,
         dateTime: DateTime.now().toIso8601String(),
-        image: image);
+        image: image,
+        isSelected: false);
 
     try {
       BlogsDatabase? blogsDatabase = BlogsDatabase.instance;
       blogsDatabase.updateData(blogs, id).whenComplete(() {
         Fluttertoast.showToast(msg: "Update data Successfully");
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const BlogScreen(),
-            ));
+        blogsDatabase.searchBlogs();
+        Navigator.pushReplacementNamed(context, RouteGenerator.blogs);
       });
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");

@@ -1,6 +1,7 @@
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/auth_models/signup_model.dart';
 import 'package:blogs_app/screens/auth_screens/signin_screen.dart';
+import 'package:blogs_app/utils/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -180,9 +181,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         blogsDatabase.createUserWhileSignUp(signUpModel);
         Fluttertoast.showToast(
             msg: "Data save successfully ${signUpModel.toMap()}");
-
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const SignInScreen()));
+        Navigator.pushNamed(context, RouteGenerator.login);
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");

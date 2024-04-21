@@ -1,7 +1,7 @@
 import 'package:blogs_app/database_sqflite/database_sqflite.dart';
 import 'package:blogs_app/models/auth_models/signin_model.dart';
 import 'package:blogs_app/screens/auth_screens/signup_screen.dart';
-import 'package:blogs_app/screens/blogs_screen.dart';
+import 'package:blogs_app/utils/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -142,8 +142,7 @@ class _SignInScreenState extends State<SignInScreen> {
         blogsDatabase.createUserWhileSignIn(signInModel);
         Fluttertoast.showToast(
             msg: "Sign-In successfully${signInModel.toMap()}");
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const BlogScreen()));
+        Navigator.pushReplacementNamed(context, RouteGenerator.blogs);
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Something wrong $e");
